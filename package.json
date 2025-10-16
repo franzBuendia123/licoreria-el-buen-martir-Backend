@@ -1,14 +1,17 @@
 {
-  "name": "licoreria-buen-martir-backend",
+  "name": "licoreria-el-buen-martir-backend",
   "version": "1.0.0",
-  "description": "Backend para Licorería El Buen Mártir",
-  "main": "servidor.js",
+  "description": "Backend para la licoreria",
+  "main": "server.js",
   "scripts": {
-    "start": "node servidor.js"
+    "start": "node server.js"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.5", // Versión 2.8.5 o superior
     "express": "^4.18.2",
-    "mongoose": "^7.6.3"
+    "mongoose": "^8.0.0" 
   }
 }
