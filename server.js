@@ -1,4 +1,4 @@
-// server.js - Solución CORS Final
+// server.js - Solución de Ruta y CORS Final
 
 // 1. IMPORTACIONES NECESARIAS
 const express = require('express');
@@ -39,9 +39,9 @@ const productSchema = new mongoose.Schema({
 // Usamos 'products' como el nombre de la colección
 const Product = mongoose.model('Product', productSchema, 'products'); 
 
-
 // 5. RUTAS DE LA API
-app.get('/api/productos', async (req, res) => {
+// 🎯 CORRECCIÓN CRÍTICA: Cambiado de /api/productos a /api/products
+app.get('/api/products', async (req, res) => {
     try {
         const productos = await Product.find({});
         res.status(200).json(productos); 
@@ -70,4 +70,3 @@ mongoose.connect(MONGO_URI)
     });
 // 7. EXPORTAR LA APP (opcional, pero útil)
 module.exports = app;
-
