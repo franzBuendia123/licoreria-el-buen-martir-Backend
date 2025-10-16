@@ -1,53 +1,80 @@
+// server.js COMPLETO Y CORREGIDO
+
+// 1. IMPORTACIONES NECESARIAS
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); 
-const path = require('path');
+const cors = require('cors'); // Librería esencial para permitir conexión desde el Frontend
 
+// 2. CONFIGURACIÓN
 const app = express();
-// Usa el puerto que te asigne Render o el 3000 si corres localmente
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 10000;
+const MONGO_URI = process.env.MONGO_URI; 
 
-// 🚨 1. LA CONNECTION STRING VIENE DE LA VARIABLE DE ENTORNO EN RENDER (MONGO_URI) 🚨
-const mongoURI = process.env.MONGO_URI; 
+// 🛑 CONFIGURACIÓN CLAVE DE CORS 🛑
+const corsOptions = {
+    // URL exacta de tu Frontend alojado en GitHub Pages
+    origin: 'https://franzbuendia123.github.io', 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204
+};
 
-// 2. Dominio de GitHub Pages (Frontend)
-const allowedOrigin = 'https://franzbuendia123.github.io'; 
+// 3. MIDDLEWARE
+app.use(cors(corsOptions)); // Aplicar la configuración de CORS
+app.use(express.json()); // Para procesar JSON en las peticiones
+app.use(express.urlencoded({ extended: true })); // Para procesar datos de formularios
 
-// 3. Configurar CORS (Permitir peticiones SOLO desde tu dominio público)
-app.use(cors({
-    origin: allowedOrigin 
-}));
+// 4. CONEXIÓN A MONGODB ATLAS
+mongoose.connect(MONGO_URI)
+    .then(() => {
+        console.log('Conexión exitosa a MongoDB Atlas');
+        
+        // El servidor solo debe empezar a escuchar después de que la DB esté conectada
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor backend escuchando en el puerto ${PORT}`);
+        });
 
-// Conexión a MongoDB
-mongoose.connect(mongoURI)
-    .then(() => console.log('Conexión exitosa a MongoDB Atlas'))
-    .catch(err => console.error('Error de conexión a MongoDB:', err));
+    })
+    .catch((error) => {
+        console.error('Error de conexión a MongoDB:', error);
+        // Si hay error en DB, el servidor no debería arrancar completamente.
+    });
 
-// Definición del Esquema (Producto)
-const ProductSchema = new mongoose.Schema({
+
+// 5. DEFINICIÓN DEL MODELO (Ajusta los campos si son diferentes)
+const productSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
-    precio_nuevo: { type: Number, required: true },
-    precio_antiguo: { type: Number },
-    descuento: { type: String },
-    imagen: { type: String }
+    precio_regular: { type: Number, required: true },
+    precio_oferta: { type: Number }, // Usado para mostrar el descuento
+    descuento_porcentaje: { type: Number },
+    imagen_url: { type: String },
+    categoria: { type: String, required: true },
+    es_oferta: { type: Boolean, default: false }
 });
-const Product = mongoose.model('Product', ProductSchema);
 
-// Servir archivos estáticos (Necesario para que Render sirva el index.html en el futuro si decides usarlo para todo)
-app.use(express.static(path.join(__dirname, 'public'))); 
+// El nombre de la colección debe ser 'products' (o 'productos' si usaste plural)
+// Asegúrate que coincida con el nombre de tu colección en Atlas.
+const Product = mongoose.model('Product', productSchema, 'products'); 
 
-// Ruta para obtener los productos (tu API REST)
+
+// 6. RUTAS DE LA API
+
+// Ruta para obtener todos los productos
 app.get('/api/productos', async (req, res) => {
     try {
         const productos = await Product.find({});
-        res.json(productos); 
+        res.status(200).json(productos);
     } catch (error) {
-        console.error("Error al obtener productos:", error);
-        res.status(500).json({ message: "Error interno del servidor" });
+        console.error('Error al obtener productos:', error);
+        res.status(500).json({ message: 'Error interno del servidor al obtener productos.' });
     }
 });
 
-// Iniciar el Servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor backend escuchando en el puerto ${PORT}`);
+// Ruta de prueba (opcional)
+app.get('/', (req, res) => {
+    res.send('Servidor de Licoreria El Buen Mártir funcionando.');
 });
+
+
+// 7. EXPORTAR LA APP (opcional, pero útil)
+module.exports = app;
